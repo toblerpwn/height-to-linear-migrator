@@ -8,6 +8,7 @@ import figlet from 'figlet';
 import { getHeightLists, HeightList } from './height/readLists';
 import { selectList } from './cli/listBrowser';
 import { browseTasks } from './cli/taskBrowser';
+import { exportHeightList } from './utils/export';
 
 // ASCII art title
 const title = figlet.textSync('Height to Linear', {
@@ -119,6 +120,16 @@ async function promptListActions(selectedList: HeightList): Promise<void> {
           description: 'View and search through all tasks in this list'
         },
         {
+          name: `💾 Export "${selectedList.name}" to JSON (with activities)`,
+          value: 'export-list',
+          description: 'Export this list, all its tasks, and activities to a local JSON file'
+        },
+        {
+          name: `📄 Export "${selectedList.name}" to JSON (tasks only)`,
+          value: 'export-list-no-activities',
+          description: 'Export this list and all its tasks to a local JSON file (without activities)'
+        },
+        {
           name: '⬅️  Back to List Browser',
           value: 'browse-lists'
         },
@@ -139,6 +150,14 @@ async function promptListActions(selectedList: HeightList): Promise<void> {
       await browseTasks(selectedList.id, selectedList.name);
       await promptContinue();
       break;
+    case 'export-list':
+      await exportList(selectedList, true);
+      await promptContinue();
+      break;
+    case 'export-list-no-activities':
+      await exportList(selectedList, false);
+      await promptContinue();
+      break;
     case 'browse-lists':
       await browseLists();
       break;
@@ -149,6 +168,35 @@ async function promptListActions(selectedList: HeightList): Promise<void> {
       console.log(chalk.green('\n👋 Thanks for using Height Migrator!'));
       process.exit(0);
       break;
+  }
+}
+
+async function exportList(selectedList: HeightList, includeActivities: boolean = true): Promise<void> {
+  console.clear();
+  
+  const activityText = includeActivities ? 'with activities' : 'without activities';
+  const spinner = ora(chalk.cyan(`💾 Exporting "${selectedList.name}" to JSON (${activityText})...`)).start();
+  
+  try {
+    const filepath = await exportHeightList(selectedList, includeActivities);
+    spinner.succeed(chalk.green(`✅ Successfully exported to: ${filepath}`));
+    
+    console.log(chalk.gray('\n📊 Export Summary:'));
+    console.log(chalk.gray(`   List: ${selectedList.name}`));
+    console.log(chalk.gray(`   File: ${filepath}`));
+    console.log(chalk.gray(`   Location: ${process.cwd()}/${filepath}`));
+    console.log(chalk.gray('\n💡 The export file contains:'));
+    console.log(chalk.gray('   - Complete list data'));
+    console.log(chalk.gray('   - All tasks in the list'));
+    if (includeActivities) {
+      console.log(chalk.gray('   - All activities (comments, system messages)'));
+    }
+    console.log(chalk.gray('   - Export metadata (timestamps, counts)'));
+    console.log(chalk.gray('\n🔒 This file is gitignored and safe to keep locally.'));
+    
+  } catch (error) {
+    spinner.fail(chalk.red('❌ Failed to export list'));
+    console.error(chalk.red('Error:'), error);
   }
 }
 

@@ -1,4 +1,4 @@
-You are a helpful agent that is building a script with me.
+You are a helpful agent that is building a script with me. The script will be shared with the public, so we should take care to handle keys sensitively, and gitignore everything environment-specific.
 
 As this project may be used by others, always keep the README.md, package.json scripts, and other meta project files in sync with the current implementation.
 

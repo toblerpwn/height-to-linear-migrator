@@ -6,6 +6,8 @@
   "type": "module",
   "scripts": {
     "heightReadLists": "tsx src/scripts/heightReadLists.ts",
+    "testActivities": "tsx src/scripts/testActivities.ts",
+    "debugActivities": "tsx src/scripts/debugActivities.ts",
     "cli": "tsx src/cli.ts",
     "start": "tsx src/cli.ts"
   },
@@ -27,6 +29,7 @@
     "height-app-api": "^1.0.7",
     "inquirer": "^12.7.0",
     "ora": "^8.2.0",
+    "p-limit": "^6.2.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {

@@ -8,6 +8,8 @@ A TypeScript project using [tsx](https://tsx.is/getting-started) to migrate data
 - 🔄 Migration pipeline from Height to Linear
 - ✅ Environment validation with Zod
 - 🛡️ TypeScript for type safety
+- 📊 Parallel activities fetching with rate limiting
+- 💾 Export lists with tasks and activities
 
 ## Prerequisites
 
@@ -66,6 +68,8 @@ The CLI provides:
 - 🎯 Easy navigation between options
 - 🔍 Search for specific lists by ID or name
 - 📊 View all lists from your Height workspace
+- 💾 Export lists with or without activities
+- 📈 Parallel activities fetching with rate limiting
 
 ### Available Scripts
 
@@ -79,6 +83,9 @@ npm run heightReadLists
 
 # Read a specific list by ID or name (direct)
 npm run heightReadLists "engineering"
+
+# Test activities functionality
+npm run testActivities
 ```
 
 ### Getting Started
@@ -120,6 +127,7 @@ src/
 - **height-app-api**: Unofficial Height SDK
 - **dotenv**: Environment variable loading
 - **zod**: Runtime type validation
+- **p-limit**: Promise concurrency limiting
 
 ### CLI Dependencies
 
