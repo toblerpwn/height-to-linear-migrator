@@ -3,9 +3,6 @@
   "version": "1.0.0",
   "description": "Migrate data from Height to Linear using tsx",
   "main": "index.js",
-  "bin": {
-    "height-migrator": "./src/cli.ts"
-  },
   "type": "module",
   "scripts": {
     "heightReadLists": "tsx src/scripts/heightReadLists.ts",
