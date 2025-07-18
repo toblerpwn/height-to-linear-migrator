@@ -2,6 +2,7 @@ import Height from 'height-app-api';
 import { heightConfig } from '../utils/config';
 
 // Define the list type based on Height API response
+// (NOTE: this is more correct/complete than Height's ListObject type!)
 export interface HeightList {
   id: string;
   name: string;
