@@ -88,7 +88,8 @@ export async function exportHeightList(list: HeightList, includeActivities: bool
     // Generate filename
     const safeName = generateSafeFilename(list.name);
     const timestamp = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-    const filename = `${safeName}_${timestamp}.json`;
+    const activitiesSuffix = includeActivities ? '_activities_incl' : '';
+    const filename = `${safeName}_${activitiesSuffix}_${timestamp}.json`;
     const filepath = path.join(EXPORT_DIR, filename);
     
     // Convert Map to object for JSON serialization
