@@ -5,7 +5,8 @@ import ora from 'ora';
 import chalk from 'chalk';
 import boxen from 'boxen';
 import figlet from 'figlet';
-import { readHeightLists } from './height/readLists';
+import { getHeightLists, getHeightList, HeightList } from './height/readLists';
+import * as readline from 'readline';
 
 // ASCII art title
 const title = figlet.textSync('Height to Linear', {
@@ -32,9 +33,9 @@ const welcomeMessage = boxen(
 // Main menu options
 const mainMenuChoices = [
   {
-    name: '📋 Read Lists from Height',
-    value: 'read-lists',
-    description: 'Fetch and display lists from your Height workspace'
+    name: '📋 Browse Height Lists',
+    value: 'browse-lists',
+    description: 'View and search through all lists in your Height workspace'
   },
   {
     name: '🚪 Exit',
@@ -43,24 +44,166 @@ const mainMenuChoices = [
   }
 ];
 
-// List selection options
-const listSelectionChoices = [
-  {
-    name: '📋 All Lists',
-    value: 'all',
-    description: 'Display all lists from Height'
-  },
-  {
-    name: '🔍 Specific List',
-    value: 'specific',
-    description: 'Search for a specific list by ID or name'
-  },
-  {
-    name: '⬅️  Back to Main Menu',
-    value: 'back',
-    description: 'Return to the main menu'
+function displayCompactList(lists: HeightList[], selectedIndex: number = 0, filterInput: string = ''): void {
+  const totalCount = lists.length;
+  const filterText = filterInput ? ` (${totalCount} of ${lists.length} total)` : ` (${totalCount} total)`;
+  
+  console.log(chalk.cyan(`\n📋 Lists${filterText}:\n`));
+  
+  lists.forEach((list, index) => {
+    const status = list.archivedAt ? chalk.gray('(archived)') : chalk.green('(active)');
+    const description = list.description ? chalk.gray(` - ${list.description}`) : '';
+    
+    if (index === selectedIndex) {
+      // Highlight selected item
+      console.log(`${chalk.cyan('▶')} ${chalk.cyan.bold(list.name)} ${status}${description}`);
+    } else {
+      console.log(`  ${chalk.white(list.name)} ${status}${description}`);
+    }
+  });
+  console.log('');
+}
+
+function displayListDetails(list: HeightList): void {
+  console.log(chalk.cyan('\n📋 List Details:\n'));
+  console.log(`${chalk.white('Name:')} ${chalk.bold(list.name)}`);
+  console.log(`${chalk.white('ID:')} ${list.id}`);
+  console.log(`${chalk.white('Type:')} ${list.type}`);
+  console.log(`${chalk.white('Created:')} ${new Date(list.createdAt).toLocaleDateString()}`);
+  console.log(`${chalk.white('Updated:')} ${new Date(list.updatedAt).toLocaleDateString()}`);
+  console.log(`${chalk.white('Status:')} ${list.archivedAt ? chalk.red('Archived') : chalk.green('Active')}`);
+  
+  if (list.description) {
+    console.log(`${chalk.white('Description:')} ${list.description}`);
   }
-];
+  
+  console.log(`${chalk.white('URL:')} ${chalk.blue(list.url)}`);
+  console.log(`${chalk.white('Tasks:')} ${list.fieldsSummaries?.name?.count || 0} items`);
+  console.log('');
+}
+
+function clearScreen(): void {
+  console.clear();
+}
+
+function renderInteractiveList(lists: HeightList[], filteredLists: HeightList[], selectedIndex: number, filterInput: string): void {
+  clearScreen();
+  
+  if (filterInput) {
+    console.log(chalk.cyan(`\n🔍 Filter: "${filterInput}"`));
+  } else {
+    console.log(chalk.cyan('\n📋 All Lists'));
+  }
+  
+  displayCompactList(filteredLists, selectedIndex, filterInput);
+  
+  // Show instructions
+  console.log(chalk.gray('Navigation: ↑↓ arrows | Selection: ENTER | Filter: Type | Exit: Ctrl+C'));
+}
+
+async function selectList(lists: HeightList[]): Promise<void> {
+  let filteredLists = [...lists];
+  let filterInput = '';
+  let selectedIndex = 0;
+  let currentInput = '';
+  
+  // Set up raw mode for immediate input handling
+  process.stdin.setRawMode(true);
+  process.stdin.resume();
+  process.stdin.setEncoding('utf8');
+  
+  renderInteractiveList(lists, filteredLists, selectedIndex, filterInput);
+  
+  return new Promise((resolve) => {
+    let buffer = '';
+    
+    const handleInput = (data: Buffer) => {
+      const input = data.toString();
+      buffer += input;
+      
+      // Handle special keys
+      if (input === '\u0003') { // Ctrl+C
+        process.exit(0);
+      }
+      
+      // Check for arrow key sequences
+      if (buffer === '\u001b[A') { // Up arrow
+        buffer = '';
+        if (selectedIndex > 0) {
+          selectedIndex--;
+          renderInteractiveList(lists, filteredLists, selectedIndex, filterInput);
+        }
+        return;
+      }
+      
+      if (buffer === '\u001b[B') { // Down arrow
+        buffer = '';
+        if (selectedIndex < filteredLists.length - 1) {
+          selectedIndex++;
+          renderInteractiveList(lists, filteredLists, selectedIndex, filterInput);
+        }
+        return;
+      }
+      
+      // Clear buffer for any other escape sequences
+      if (buffer.startsWith('\u001b')) {
+        buffer = '';
+        return;
+      }
+      
+      if (buffer === '\r' || buffer === '\n') { // Enter
+        buffer = '';
+        if (filteredLists.length > 0) {
+          const selectedList = filteredLists[selectedIndex];
+          process.stdin.setRawMode(false);
+          process.stdin.pause();
+          displayListDetails(selectedList);
+          resolve();
+          return;
+        }
+        return;
+      }
+      
+      if (buffer === '\u007f') { // Backspace
+        buffer = '';
+        if (currentInput.length > 0) {
+          currentInput = currentInput.slice(0, -1);
+          filterInput = currentInput;
+          filteredLists = currentInput 
+            ? lists.filter(list => 
+                list.name.toLowerCase().includes(currentInput.toLowerCase()) ||
+                (list.description && list.description.toLowerCase().includes(currentInput.toLowerCase()))
+              )
+            : [...lists];
+          selectedIndex = Math.min(selectedIndex, filteredLists.length - 1);
+          renderInteractiveList(lists, filteredLists, selectedIndex, filterInput);
+        }
+        return;
+      }
+      
+      // Regular character input (printable characters)
+      if (buffer.length === 1 && buffer.charCodeAt(0) >= 32 && buffer.charCodeAt(0) <= 126) {
+        const char = buffer;
+        buffer = '';
+        currentInput += char;
+        filterInput = currentInput;
+        filteredLists = lists.filter(list => 
+          list.name.toLowerCase().includes(currentInput.toLowerCase()) ||
+          (list.description && list.description.toLowerCase().includes(currentInput.toLowerCase()))
+        );
+        selectedIndex = 0; // Reset to first item when filtering
+        renderInteractiveList(lists, filteredLists, selectedIndex, filterInput);
+      }
+    };
+    
+    process.stdin.on('data', handleInput);
+    
+    // Clean up when done
+    process.on('exit', () => {
+      process.stdin.removeListener('data', handleInput);
+    });
+  });
+}
 
 async function showMainMenu(): Promise<void> {
   console.clear();
@@ -77,8 +220,8 @@ async function showMainMenu(): Promise<void> {
   ]);
 
   switch (action) {
-    case 'read-lists':
-      await handleReadLists();
+    case 'browse-lists':
+      await browseLists();
       break;
     case 'exit':
       console.log(chalk.green('\n👋 Thanks for using Height Migrator!'));
@@ -87,72 +230,34 @@ async function showMainMenu(): Promise<void> {
   }
 }
 
-async function handleReadLists(): Promise<void> {
+async function browseLists(): Promise<void> {
   console.clear();
   
-  const { listOption } = await inquirer.prompt([
-    {
-      type: 'list',
-      name: 'listOption',
-      message: chalk.cyan('How would you like to read lists?'),
-      choices: listSelectionChoices,
-      pageSize: 10
-    }
-  ]);
-
-  switch (listOption) {
-    case 'all':
-      await readAllLists();
-      break;
-    case 'specific':
-      await readSpecificList();
-      break;
-    case 'back':
-      await showMainMenu();
+  // Immediately fetch all lists
+  const spinner = ora(chalk.cyan('📋 Loading lists from Height...')).start();
+  
+  try {
+    const lists = await getHeightLists();
+    spinner.succeed(chalk.green(`✅ Loaded ${lists.length} lists`));
+    
+    if (lists.length === 0) {
+      console.log(chalk.yellow('\n⚠️  No lists found. This could mean:'));
+      console.log(chalk.gray('   - No lists exist in your Height workspace'));
+      console.log(chalk.gray('   - API token doesn\'t have access to lists'));
+      console.log(chalk.gray('   - Different API endpoint structure\n'));
+      await promptContinue();
       return;
-  }
-}
-
-async function readAllLists(): Promise<void> {
-  const spinner = ora(chalk.cyan('📋 Reading all lists from Height...')).start();
-  
-  try {
-    await readHeightLists();
-    spinner.succeed(chalk.green('✅ Successfully read all lists!'));
-  } catch (error) {
-    spinner.fail(chalk.red('❌ Failed to read lists'));
-    console.error(chalk.red('Error:'), error);
-  }
-
-  await promptContinue();
-}
-
-async function readSpecificList(): Promise<void> {
-  const { listIdentifier } = await inquirer.prompt([
-    {
-      type: 'input',
-      name: 'listIdentifier',
-      message: chalk.cyan('Enter the list ID or name:'),
-      validate: (input: string) => {
-        if (input.trim().length === 0) {
-          return 'Please enter a list ID or name';
-        }
-        return true;
-      }
     }
-  ]);
-
-  const spinner = ora(chalk.cyan(`🔍 Searching for list: ${listIdentifier}`)).start();
-  
-  try {
-    await readHeightLists(listIdentifier);
-    spinner.succeed(chalk.green('✅ Successfully found and displayed the list!'));
+    
+    // Allow user to filter and select
+    await selectList(lists);
+    await promptContinue();
+    
   } catch (error) {
-    spinner.fail(chalk.red('❌ Failed to find the list'));
+    spinner.fail(chalk.red('❌ Failed to load lists'));
     console.error(chalk.red('Error:'), error);
+    await promptContinue();
   }
-
-  await promptContinue();
 }
 
 async function promptContinue(): Promise<void> {
@@ -163,8 +268,8 @@ async function promptContinue(): Promise<void> {
       message: chalk.cyan('What would you like to do next?'),
       choices: [
         {
-          name: '🔄 Try Another Action',
-          value: 'continue'
+          name: '⬅️  Back to Main Menu',
+          value: 'menu'
         },
         {
           name: '🚪 Exit',
@@ -174,11 +279,17 @@ async function promptContinue(): Promise<void> {
     }
   ]);
 
-  if (continueAction === 'continue') {
-    await showMainMenu();
-  } else {
-    console.log(chalk.green('\n👋 Thanks for using Height Migrator!'));
-    process.exit(0);
+  switch (continueAction) {
+    case 'browse':
+      await browseLists();
+      break;
+    case 'menu':
+      await showMainMenu();
+      break;
+    case 'exit':
+      console.log(chalk.green('\n👋 Thanks for using Height Migrator!'));
+      process.exit(0);
+      break;
   }
 }
 

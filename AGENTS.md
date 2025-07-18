@@ -9,3 +9,5 @@ The Height SDK is not so well-documented. It provides general instructions on ho
 By default, migration scripts can freely READ data, but should not ever WRITE data UNLESS explicitly approved at runtime, perhaps by outputting the expected data to be written by the CLI, then prompting the user to confirm explicitly whether they want it written.
 
 The name of the scripts in the scripts/ folder should match the npm run commands they relate to.
+
+Types should generally be defined in dedicated type files.
