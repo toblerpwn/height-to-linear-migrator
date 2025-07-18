@@ -8,11 +8,11 @@ import figlet from 'figlet';
 import { readHeightLists } from './height/readLists';
 
 // ASCII art title
-const title = figlet.textSync('Height Migrator', {
-  font: 'Big Money-sw',
+const title = figlet.textSync('Height to Linear', {
+  font: 'Slant',
   horizontalLayout: 'default',
   verticalLayout: 'default',
-  width: 80,
+  width: 100,
   whitespaceBreak: true
 });
 
