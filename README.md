@@ -48,20 +48,37 @@ A TypeScript project using [tsx](https://tsx.is/getting-started) to migrate data
 
 ## Usage
 
+### Interactive CLI
+
+The project includes a beautiful interactive CLI for easy navigation:
+
+```bash
+# Start the interactive CLI
+npm run cli
+# or
+npm start
+```
+
+The CLI provides:
+- 🎨 Beautiful ASCII art interface
+- 📋 Interactive menus with descriptions
+- ⏳ Visual loading spinners
+- 🎯 Easy navigation between options
+- 🔍 Search for specific lists by ID or name
+- 📊 View all lists from your Height workspace
+
 ### Available Scripts
 
 ```bash
-# Start the main application
+# Start the interactive CLI
 npm start
+npm run cli
 
-# Run in development mode with file watching
-npm run dev
+# Run the original direct script
+npm run heightReadLists
 
-# Read all lists from Height
-npm run read
-
-# Read a specific list by ID or name
-npm run read "engineering"
+# Read a specific list by ID or name (direct)
+npm run heightReadLists "engineering"
 ```
 
 ### Getting Started
@@ -86,18 +103,31 @@ npm run read "engineering"
 
 ```
 src/
-├── index.ts              # Main entry point
-├── readLists.ts          # Read lists from Height
-└── migrate.ts            # Full migration script
+├── cli.ts                # Interactive CLI interface
+├── height/
+│   └── readLists.ts      # Height list reading functionality (module)
+├── scripts/
+│   └── heightReadLists.ts # Script wrapper for direct execution
+├── linear/               # Linear integration (coming soon)
+└── utils/
+    └── config.ts         # Configuration and environment setup
 ```
 
 ## Dependencies
 
 - **tsx**: Fast TypeScript execution
 - **@linear/sdk**: Official Linear SDK
-- **height-api**: Unofficial Height SDK
+- **height-app-api**: Unofficial Height SDK
 - **dotenv**: Environment variable loading
 - **zod**: Runtime type validation
+
+### CLI Dependencies
+
+- **inquirer**: Interactive command line interface
+- **ora**: Elegant terminal spinners
+- **chalk**: Terminal string styling
+- **boxen**: Create boxes in the terminal
+- **figlet**: ASCII art text
 
 ## Development
 

@@ -1,10 +1,5 @@
-#!/usr/bin/env tsx
-
 import Height from 'height-app-api';
 import { heightConfig } from '../utils/config';
-
-// Get command line arguments
-const listId = process.argv[2];
 
 function logListDetails(list: any, isListItem: boolean = false): void {
   const prefix = isListItem ? '   ' : '';
@@ -20,7 +15,7 @@ function logListDetails(list: any, isListItem: boolean = false): void {
   }
 }
 
-async function readHeightLists(): Promise<void> {
+export async function readHeightLists(listId?: string): Promise<void> {
   try {
     // Initialize Height client
     const height = new Height({ secretKey: heightConfig.apiToken });
@@ -70,9 +65,8 @@ async function readHeightLists(): Promise<void> {
 
   } catch (error) {
     console.error('❌ Error reading lists from Height:', error);
-    process.exit(1);
+    throw error; // Re-throw instead of process.exit for better error handling
   }
 }
 
-// Run the script
-readHeightLists(); 
+ 

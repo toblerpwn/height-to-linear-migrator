@@ -3,9 +3,14 @@
   "version": "1.0.0",
   "description": "Migrate data from Height to Linear using tsx",
   "main": "index.js",
+  "bin": {
+    "height-migrator": "./src/cli.ts"
+  },
   "type": "module",
   "scripts": {
-    "heightReadLists": "tsx src/height/readLists.ts"
+    "heightReadLists": "tsx src/scripts/heightReadLists.ts",
+    "cli": "tsx src/cli.ts",
+    "start": "tsx src/cli.ts"
   },
   "keywords": [
     "height",
@@ -17,11 +22,18 @@
   "license": "MIT",
   "dependencies": {
     "@linear/sdk": "^52.0.0",
+    "@types/inquirer": "^9.0.8",
+    "boxen": "^8.0.1",
+    "chalk": "^5.4.1",
     "dotenv": "^16.3.1",
+    "figlet": "^1.8.2",
     "height-app-api": "^1.0.7",
+    "inquirer": "^12.7.0",
+    "ora": "^8.2.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@types/figlet": "^1.7.0",
     "@types/node": "^20.8.0",
     "tsx": "^4.0.0",
     "typescript": "^5.2.0"

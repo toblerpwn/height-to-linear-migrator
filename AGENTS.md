@@ -7,3 +7,5 @@ The Linear SDK is well-documented and fully replaces its API for our purposes. Y
 The Height SDK is not so well-documented. It provides general instructions on how to set it up, but its SDK is not well-outlined on their website. Rely on local types to infer how to do certain operations. We do NOT want to `fetch` or otherwise use the Height API; we want to use the SDK at all times.
 
 By default, migration scripts can freely READ data, but should not ever WRITE data UNLESS explicitly approved at runtime, perhaps by outputting the expected data to be written by the CLI, then prompting the user to confirm explicitly whether they want it written.
+
+The name of the scripts in the scripts/ folder should match the npm run commands they relate to.
