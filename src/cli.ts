@@ -96,9 +96,15 @@ function renderInteractiveList(lists: HeightList[], filteredLists: HeightList[],
   }
   
   displayCompactList(filteredLists, selectedIndex, filterInput);
+
+  let instructions = 'Filter: Type | Exit: Ctrl+C';
+  if (filterInput) {
+    const prefix = 'Navigation: ↑↓ arrows | Selection: ENTER | ';
+    instructions = prefix + instructions;
+  }
   
   // Show instructions
-  console.log(chalk.gray('Navigation: ↑↓ arrows | Selection: ENTER | Filter: Type | Exit: Ctrl+C'));
+  console.log(chalk.gray(instructions));
 }
 
 async function selectList(lists: HeightList[]): Promise<void> {
@@ -123,6 +129,9 @@ async function selectList(lists: HeightList[]): Promise<void> {
       
       // Handle special keys
       if (input === '\u0003') { // Ctrl+C
+        process.stdin.setRawMode(false);
+        process.stdin.pause();
+        process.stdin.removeListener('data', handleInput);
         process.exit(0);
       }
       
@@ -157,6 +166,7 @@ async function selectList(lists: HeightList[]): Promise<void> {
           const selectedList = filteredLists[selectedIndex];
           process.stdin.setRawMode(false);
           process.stdin.pause();
+          process.stdin.removeListener('data', handleInput);
           displayListDetails(selectedList);
           resolve();
           return;
