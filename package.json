@@ -1,0 +1,29 @@
+{
+  "name": "height-to-linear-migrator",
+  "version": "1.0.0",
+  "description": "Migrate data from Height to Linear using tsx",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "heightReadLists": "tsx src/height/readLists.ts"
+  },
+  "keywords": [
+    "height",
+    "linear",
+    "migration",
+    "tsx"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@linear/sdk": "^52.0.0",
+    "dotenv": "^16.3.1",
+    "height-app-api": "^1.0.7",
+    "zod": "^3.22.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20.8.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.2.0"
+  }
+}
